@@ -14,6 +14,11 @@ app.use(express.json());
 // frontend files
 app.use(express.static(path.join(__dirname, "public")));
 
+// first page (signup)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "signup.html"));
+});
+
 // routes
 app.use("/api/auth", authRoutes);
 

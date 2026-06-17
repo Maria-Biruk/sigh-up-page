@@ -1,7 +1,7 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { OAuth2Client } = require("google-auth-library");
-const User = require("../models/User");
+const User = require("../models/user");
 
 const router = express.Router();
 
