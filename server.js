@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const authRoutes = require("./routes/auth");
 
@@ -11,14 +12,16 @@ app.use(cors());
 app.use(express.json());
 
 // frontend files
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 // routes
 app.use("/api/auth", authRoutes);
 
 // database connection
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/authDB";
+
 mongoose
-  .connect("mongodb://127.0.0.1:27017/authDB")
+  .connect(MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
   })
@@ -26,7 +29,11 @@ mongoose
     console.log(err);
   });
 
-// server
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
-});
+// Only start server locally (not on Vercel)
+if (process.env.NODE_ENV !== "production") {
+  app.listen(5000, () => {
+    console.log("Server running on port 5000");
+  });
+}
+
+module.exports = app;
