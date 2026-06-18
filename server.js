@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -30,15 +32,18 @@ app.use("/api/auth", authRoutes);
 // database connection
 const MONGO_URI = process.env.MONGO_URI;
 
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+if (!MONGO_URI) {
+  console.log("MONGO_URI is missing");
+} else {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log("MongoDB connected");
+    })
+    .catch((err) => {
+      console.log("MongoDB connection error:", err);
+    });
+}
 
 
 // Only start server locally
