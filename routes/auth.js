@@ -1,14 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
 
 const router = express.Router();
-
-
-// Replace with your Google Client ID
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID_HERE";
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 
 // SIGN UP
@@ -18,15 +12,18 @@ router.post("/signup", async (req, res) => {
 
     const { name, email, password } = req.body;
 
+
     const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
+    if(existingUser){
       return res.status(400).json({
-        error: "Email already registered"
+        error:"Email already registered"
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const hashedPassword = await bcrypt.hash(password,10);
+
 
     const user = new User({
       name,
@@ -34,53 +31,12 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword
     });
 
+
     await user.save();
 
-    res.json({
-      message: "User created successfully"
-    });
-
-
-  } catch(error) {
-
-    res.status(500).json({
-      error: error.message
-    });
-
-  }
-
-});
-
-
-// LOGIN
-router.post("/login", async (req,res)=>{
-
-  try {
-
-    const {email,password}=req.body;
-
-    const user = await User.findOne({email});
-
-    if(!user){
-      return res.status(400).json({
-        error:"User not found"
-      });
-    }
-
-
-    const match = await bcrypt.compare(password,user.password);
-
-
-    if(!match){
-      return res.status(400).json({
-        error:"Wrong password"
-      });
-    }
-
 
     res.json({
-      message:"Login successful",
-      name:user.name
+      message:"User created successfully"
     });
 
 
@@ -95,114 +51,131 @@ router.post("/login", async (req,res)=>{
 });
 
 
-// GOOGLE LOGIN
-router.post("/google", async(req,res)=>{
+
+
+
+// LOGIN
+router.post("/login", async(req,res)=>{
 
   try{
 
-    const {credential}=req.body;
-
-
-    const ticket = await client.verifyIdToken({
-      idToken:credential,
-      audience:GOOGLE_CLIENT_ID
-    });
-
-
-    const payload=ticket.getPayload();
-
-
-    const {sub:googleId,email,name}=payload;
-
-
-    let user=await User.findOne({email});
-
-
-    if(user){
-
-      if(!user.googleId){
-
-        user.googleId=googleId;
-        await user.save();
-
-      }
-
-
-      return res.json({
-        message:"Login successful",
-        name:user.name
-      });
-
-    }
-
-
-    user=new User({
-      name,
-      email,
-      googleId
-    });
-
-
-    await user.save();
-
-
-    res.json({
-      message:"Account created with Google",
-      name:user.name
-    });
-
-
-  }catch(error){
-
-    res.status(500).json({
-      error:"Google authentication failed"
-    });
-
-  }
-
-});
-
-
-// FORGOT PASSWORD
-router.post("/forgot-password",async(req,res)=>{
-
-  try{
 
     const {email,password}=req.body;
 
 
-    const user=await User.findOne({email});
+    const user = await User.findOne({email});
 
 
     if(!user){
 
-      return res.status(404).json({
+      return res.status(400).json({
         error:"User not found"
       });
 
     }
 
 
-    user.password=await bcrypt.hash(password,10);
+
+    const isPasswordCorrect =
+    await bcrypt.compare(password,user.password);
 
 
-    await user.save();
+
+    if(!isPasswordCorrect){
+
+      return res.status(400).json({
+        error:"Wrong password"
+      });
+
+    }
+
 
 
     res.json({
-      message:"Password updated successfully"
+
+      message:"Login successful",
+
+      name:user.name
+
     });
+
 
 
   }catch(error){
 
+
     res.status(500).json({
+
       error:error.message
+
     });
+
 
   }
 
+
 });
+
+
+
+
+
+// FORGOT PASSWORD
+router.post("/forgot-password",async(req,res)=>{
+
+
+try{
+
+
+const {email,password}=req.body;
+
+
+const user = await User.findOne({email});
+
+
+if(!user){
+
+return res.status(404).json({
+
+error:"User not found"
+
+});
+
+}
+
+
+
+user.password = await bcrypt.hash(password,10);
+
+
+await user.save();
+
+
+
+res.json({
+
+message:"Password updated successfully"
+
+});
+
+
+
+}catch(error){
+
+
+res.status(500).json({
+
+error:error.message
+
+});
+
+
+}
+
+
+});
+
+
 
 
 module.exports = router;

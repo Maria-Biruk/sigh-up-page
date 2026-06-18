@@ -61,28 +61,53 @@
         setTimeout(clearForm, 100);
       });
 
-      async function login() {
-        const userData = {
-          email: document.getElementById("email").value,
-          password: document.getElementById("password").value,
-        };
+     async function login() {
+  const userData = {
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+  };
 
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userData),
-        });
+  try {
 
-        const result = await response.json();
-        const msgEl = document.getElementById("msg");
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(userData),
+    });
 
-        if (result.message) {
-          sessionStorage.setItem("username", result.name);
-          window.location.href = "landing.html";
-        } else {
-          msgEl.innerText = result.error;
-        }
-      }
+
+    const result = await response.json();
+
+    const msgEl = document.getElementById("msg");
+
+
+    if (result.token) {
+
+      // save JWT token
+      localStorage.setItem("token", result.token);
+
+      // save username
+      sessionStorage.setItem("username", result.name);
+
+
+      window.location.href = "landing.html";
+
+    } else {
+
+      msgEl.innerText = result.error;
+
+    }
+
+
+  } catch (error) {
+
+    document.getElementById("msg").innerText =
+      "Server error. Try again.";
+
+  }
+}
 
       function showPassword() {
         const password = document.getElementById("password");
