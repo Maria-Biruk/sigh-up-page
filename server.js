@@ -36,7 +36,10 @@ if (!MONGO_URI) {
   console.log("MONGO_URI is missing");
 } else {
   mongoose
-    .connect(MONGO_URI)
+    .connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    })
     .then(() => {
       console.log("MongoDB connected");
     })
